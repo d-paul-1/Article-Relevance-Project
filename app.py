@@ -19,8 +19,7 @@ for file in [verified_file, problematic_file]:
     if not os.path.exists(file):
         open(file, 'w').close()
 
-
-def get_publications(limit=1, offset=0):  # Default to 1 publication per page
+def get_publications(limit=1, offset=0):
     """
     Fetches DOI and author data from the Neotoma database.
     """
@@ -37,12 +36,11 @@ def get_publications(limit=1, offset=0):  # Default to 1 publication per page
         publication = item.get('publication', {})
         doi = publication.get('doi')
         pubid = publication.get('publicationid', '')
-        authors = publication.get('author', [])  # Assuming author data is available here
+        authors = publication.get('author', [])
         if doi:
             doi_set.append({'doi': doi, 'authors': authors, 'publicationid': pubid})
     
     return doi_set
-
 
 def get_openalex_authors(doi):
     """
@@ -57,12 +55,34 @@ def get_openalex_authors(doi):
         print(f"Error retrieving authors for DOI {doi}: {e}")
         return ["Error retrieving authors"]
 
+def get_next_valid_page(current_page, direction, limit=1):
+    """
+    Helper function to find the next or previous valid page with a DOI.
+    :param current_page: The current page number
+    :param direction: Direction to move ("next" or "prev")
+    :param limit: Number of publications to fetch per page
+    :return: Next valid page number
+    """
+    # finding the next valid page and skipping pages with no DOIs
+    offset = (current_page - 1) * limit
+    if direction == 'next':
+        current_page += 1
+    elif direction == 'prev' and current_page > 1:
+        current_page -= 1
+
+    publications = get_publications(limit=limit, offset=(current_page - 1) * limit)
+    
+    # checking if the current page contains a DOI
+    if not any(pub['doi'] for pub in publications):
+        return get_next_valid_page(current_page, direction, limit)  # recursively find the next valid page
+    
+    return current_page
 
 @app.route('/')
 def index():
     # Get the page number from the query parameters (default to 1)
     page = int(request.args.get('page', 1))
-    limit = 1 # only one DOI per page
+    limit = 1  # only one DOI per page
     offset = (page - 1) * limit  # calculating the offset
 
     # fetching Neotoma publication data
@@ -81,23 +101,24 @@ def index():
             'publicationid': pub.get('publicationid')
         })
 
-    # Determine if next/previous page is available
-    next_page = page + 1
-    prev_page = page - 1 if page > 1 else 1
+    # Get next and previous valid pages
+    next_page = get_next_valid_page(page, 'next')
+    prev_page = get_next_valid_page(page, 'prev')
 
+    return render_template('index.html', 
+                           publications=publications_with_comparisons, 
+                           next_page=next_page, 
+                           prev_page=prev_page, 
+                           current_page=page)
 
-    # rendering data in index.html
-    return render_template('index.html', publications= publications_with_comparisons, next_page=next_page, prev_page=prev_page, current_page=page)
 
 @app.route('/save-doi')
 def save_doi():
-    # getting the action, DOI, and puboication ID from the query parameters
     action = request.args.get('action')
     doi = request.args.get('doi')
-    publication_id= request.args.get('publicationid')
+    publication_id = request.args.get('publicationid')
     authors = request.args.get('authors')
 
-     # saving the characteristcs intto its respected text file
     if action == "verify" and doi:
         try:
             with open('verified.txt', 'a') as file:
@@ -114,7 +135,7 @@ def save_doi():
             return f'Error: {str(e)}' 
     else:
         return 'Missing parameters!'
-    
+
 
 if __name__ == "__main__":
     app.run(debug=True)
