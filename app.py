@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, redirect, url_for, jsonify
 import requests
 import os
+import json 
 from pyalex import config, Works
 
 app = Flask(__name__)
@@ -120,22 +121,35 @@ def save_doi():
     publication_id = request.args.get('publicationid')
     authors = request.args.get('authors')
 
-    if action == "verify" and doi:
+    if action in ["verify", "problematic"] and doi:
+        file_name = 'verified.json' if action == "verify" else 'problematic.json'
         try:
-            with open('verified.txt', 'a') as file:
-                file.write(f"\nPublication ID: {publication_id}\nDOI: {doi}\nAuthors: {authors}\n")
+            # Create a dictionary for the data to save
+            data = {
+                "Publication ID": publication_id,
+                "DOI": doi,
+                "Authors": authors
+            }
+
+            # Read existing data if the file exists, otherwise start with an empty list
+            if os.path.exists(file_name):
+                with open(file_name, 'r') as file:
+                    existing_data = json.load(file)
+            else:
+                existing_data = []
+
+            # Append the new data
+            existing_data.append(data)
+
+            # Write back the updated data to the file
+            with open(file_name, 'w') as file:
+                json.dump(existing_data, file, indent=4)
+
             return 'DOI saved successfully!'
         except Exception as e:
             return f'Error: {str(e)}'
-        
-    elif action == "problematic" and doi:
-        try:
-            with open('problematic.txt', 'a') as file:
-                file.write(f"\nPublication ID: {publication_id}\nDOI: {doi}\nAuthors: {authors}\n")
-        except Exception as e:
-            return f'Error: {str(e)}' 
-    else:
-        return 'Missing parameters!'
+    return 'Missing parameters!'
+
 
 
 if __name__ == "__main__":
