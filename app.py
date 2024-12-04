@@ -74,6 +74,7 @@ def get_next_valid_page(current_page, direction, limit=1):
     
     # checking if the current page contains a DOI
     if not any(pub['doi'] for pub in publications):
+        print( current_page,direction)
         return get_next_valid_page(current_page, direction, limit)  # recursively find the next valid page
     
     return current_page
