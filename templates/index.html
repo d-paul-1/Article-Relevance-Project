@@ -24,7 +24,13 @@
                         <div class="card mb-5">
                             <div class="card-body">
                                 <h5 class="card-title">Open Alex</h5>
+                                {% if publication.openalex_title %}
+                                    <strong>Title:</strong> {{ publication.openalex_title }}<br>
+                                {% else %}
+                                    <strong>Title:</strong> <em>No title available.</em><br>
+                                {% endif %}
                                 <strong>OpenAlex Authors:</strong>
+
                                 <ul>
                                     {% for author in publication.openalex_authors %}
                                         <li>{{ author.display_name }}</li>
@@ -39,6 +45,11 @@
                         <div class="card mb-5">
                             <div class="card-body">
                                 <h5 class="card-title">Neotoma</h5>
+                                {% if publication.articletitle %}
+                                     <strong>Title</strong> {{ publication.articletitle }}<br>
+                                {% else %}
+                                    <strong>Title:</strong> <em>No citation available.</em><br>
+                                {% endif %}
                                 <strong>Neotoma Authors:</strong>
                                 <ul>
                                     {% for author in publication.neotoma_authors %}
@@ -55,12 +66,14 @@
                     <button class="btn btn-success verify-btn" 
                             data-doi="{{ publication.doi }}"
                             data-pubid="{{ publication.publicationid }}"
-                            data-authors="{{ publication.neotoma_authors | join(', ') }}">Verify</button>
-
+                            data-authors="{{ publication.neotoma_authors | join(', ') }}"
+                            data-articletitle="{{ publication.articletitle }}">Verify</button>
+                
                     <button class="btn btn-danger problematic-btn"
                             data-doi="{{ publication.doi }}" 
                             data-pubid="{{ publication.publicationid }}" 
-                            data-authors="{{ publication.neotoma_authors | join(', ') }}">Problematic</button>
+                            data-authors="{{ publication.neotoma_authors | join(', ') }}"
+                            data-articletitle="{{ publication.articletitle }}">Problematic</button>
                 </div>
             </div>
         {% endif %}
@@ -79,8 +92,9 @@
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
     <script>
-        function saveDoi(action, doi, publicationid, authors) {
-            fetch(`/save-doi?action=${action}&doi=${doi}&publicationid=${publicationid}&authors=${authors}`)
+
+        function saveDoi(action, doi, publicationid, authors, articletitle) {
+            fetch(`/save-doi?action=${action}&doi=${doi}&publicationid=${publicationid}&authors=${encodeURIComponent(authors)}&articletitle=${encodeURIComponent(articletitle)}`)
                 .catch(err => {
                     alert('Error saving DOI: ' + err);
                 });
@@ -91,7 +105,8 @@
                 const doi = btn.getAttribute('data-doi');
                 const publicationid = btn.getAttribute('data-pubid');
                 const authors = btn.getAttribute('data-authors');
-                saveDoi('verify', doi, publicationid, authors);
+                const articletitle = btn.getAttribute('data-articletitle');
+                saveDoi('verify', doi, publicationid, authors, articletitle);
             });
         });
 
@@ -100,7 +115,8 @@
                 const doi = btn.getAttribute('data-doi');
                 const publicationid = btn.getAttribute('data-pubid');
                 const authors = btn.getAttribute('data-authors');
-                saveDoi('problematic', doi, publicationid, authors);
+                const articletitle = btn.getAttribute('data-articletitle');
+                saveDoi('problematic', doi, publicationid, authors, articletitle);
             });
         });
     </script>

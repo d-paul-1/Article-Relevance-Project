@@ -1,7 +1,26 @@
 [
     {
         "Publication ID": "4",
+        "Title": "Postglacial history of East European boreal forests in the mid-Kama region, pre-Urals, Russia",
         "DOI": "10.1111/bor.12436",
         "Authors": "Shumilovskikh,Lyudmila S., Schmidt,Monika, Pereskokov,Mikhail, Sannikov,Pavel"
+    },
+    {
+        "Publication ID": "5",
+        "Title": "Myrtle Lake: a late- and post-glacial pollen diagram from northern Minnesota",
+        "DOI": "10.1139/b68-190",
+        "Authors": "Janssen,C. Roel"
+    },
+    {
+        "Publication ID": "8",
+        "Title": "A numerical analysis of Holocene forest and prairie vegetation in central Minnesota",
+        "DOI": "10.2307/1939818",
+        "Authors": "Jacobson,G., Grimm,Eric Christopher"
+    },
+    {
+        "Publication ID": "10",
+        "Title": "Late Quaternary vegetation history of the eastern Highland Rim and adjacent Cumberland Plateau of Tennessee",
+        "DOI": "10.2307/1942485",
+        "Authors": "Delcourt,Hazel R."
     }
 ]
