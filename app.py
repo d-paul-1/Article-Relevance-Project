@@ -47,17 +47,19 @@ def get_publications(limit=1, offset=0):
 def get_openalex_authors(doi):
     """
     Fetches authorship information for a publication from OpenAlex given a DOI.
+    Always returns a tuple (authorships, title) for consistency.
     """
     try:
         full_doi = f"https://doi.org/{doi}"
         alex_result = Works()[full_doi]
         authorships = [i.get('author') for i in alex_result.get('authorships', [])]
-        title = alex_result.get('title', 'No title available')
-        
+        title = alex_result.get('title', 'N/A')  # Default to 'N/A' if no title is found
         return authorships, title
     except Exception as e:
         print(f"Error retrieving authors for DOI {doi}: {e}")
-        return ["Error retrieving authors"]
+        # Return empty authorships and 'N/A' as placeholders in case of an error
+        return [], "N/A"
+
 
 def pages_to_skip():
     """
@@ -109,6 +111,15 @@ def get_next_valid_page(current_page, direction, limit=1, skip=None):
     return current_page
 
 @app.route('/')
+def welcome():
+    # Determine the first valid page dynamically
+    skip = pages_to_skip()
+    first_valid_page = get_next_valid_page(0, 'next', skip=skip)  # Start at 0 to find the first valid page
+    return render_template('welcome.html', first_page=first_valid_page)
+
+
+
+@app.route('/index')
 def index():
     # Get the page number from the query parameters (default to 1)
     page = int(request.args.get('page', 1))
@@ -145,6 +156,7 @@ def index():
                            next_page=next_page, 
                            prev_page=prev_page, 
                            current_page=page)
+
 
 
 
