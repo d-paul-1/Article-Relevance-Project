@@ -12,14 +12,6 @@ config.retry_backoff_factor = 0.1
 config.retry_http_codes = [429, 500, 503]
 config.email = "goring@wisc.edu"
 
-# Ensure 'verified.txt' and 'problematic.txt' exist
-verified_file = "verified.txt"
-problematic_file = "problematic.txt"
-
-for file in [verified_file, problematic_file]:
-    if not os.path.exists(file):
-        open(file, 'w').close()
-
 def get_publications(limit=1, offset=0):
     """
     Fetches DOI and author data from the Neotoma database.
@@ -167,6 +159,8 @@ def save_doi():
     publication_id = request.args.get('publicationid')
     authors = request.args.get('authors')
     articletitle = request.args.get('articletitle')
+    reason = request.args.get('reason')  # Get the reason from the request
+    orcids = request.args.get('orcid')  # Get ORCID from the request
 
     if action in ["verify", "problematic"] and doi:
         file_name = 'verified.json' if action == "verify" else 'problematic.json'
@@ -176,7 +170,9 @@ def save_doi():
                 "Publication ID": publication_id,
                 "Title": articletitle,
                 "DOI": doi,
-                "Authors": authors
+                "Authors": authors,
+                "Reason": reason,  # Save the reason to the file
+                "ORCIDs": orcids  # Save the ORCIDs to the file
             }
 
             # Read existing data, or start with an empty list if the file is empty or malformed
@@ -200,10 +196,6 @@ def save_doi():
         except Exception as e:
             return f'Error: {str(e)}'
     return 'Missing parameters!'
-
-
-
-
 
 if __name__ == "__main__":
     app.run(debug=True)
